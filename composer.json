@@ -1,0 +1,13 @@
+{
+    "name": "dylate/yamoah",
+    "description": "WordPress theme package that allows developers to easily create editable data tables for WordPress users to access in the WordPress admin dashboard.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Morgan Billingsley",
+            "email": "morgan@dylate.org"
+        }
+    ],
+    "require": {}
+}
