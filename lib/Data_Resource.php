@@ -2,7 +2,7 @@
 
 namespace Yamoah;
 
-use Exception\Data_Query_Exception;
+use \Yamoah\Exception\Data_Query_Exception;
 
 /**
  * Class Data_Resource
@@ -37,12 +37,12 @@ class Data_Resource
         // Write the query
         $sql = $wpdb->prepare("SELECT * FROM {$this->table} WHERE `ID` = %d;", intval( $this->ID ));
         // Execute the query
-        $row = $wpdb->get_row($sql);
+        $row = $wpdb->get_row($sql, ARRAY_A);
         // If there was an error refreshing the object, throw an error, otherwise return the new resource object
         if (false === $row) {
             throw new Data_Query_Exception($wpdb->last_error, 2);
         } else {
-            return new Data_Resource($new_data, $this->table);
+            return new Data_Resource($row, $this->table);
         }
     }
 

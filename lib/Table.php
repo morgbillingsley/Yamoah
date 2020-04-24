@@ -2,9 +2,11 @@
 
 namespace Yamoah;
 
-use Util\Database;
-use Util\Data_Types;
-use Exception\Data_Type_Exception;
+use \Yamoah\Util\Database;
+use \Yamoah\Util\Data_Types;
+use \Yamoah\Util\Admin_Data_Table;
+use \Yamoah\Exception\Data_Type_Exception;
+use \Yamoah\Exception\Table_Query_Exception;
 
 /**
  * Class Table
@@ -21,18 +23,26 @@ class Table
         $has_pattern = Data_Types::array_has_pattern( $args, ["name","schema"] );
         if (!$has_pattern) {
             throw new Data_Type_Exception("The array submitted does not follow the correct pattern");
+        } else {
+            // Store the resource name in memory
+            $name = $args["name"];
+            // Store the resource schema in memory
+            $schema = $args["schema"];
+            // If set, store the create_pages option in memory, otherwise, set to true
+            $create_pages = isset( $args["create_pages"] ) && gettype( $args["create_pages"] ) == "boolean" ? $args["create_pages"] : true;
         }
         // Bring in the WordPress database object
         global $wpdb;
+        $table_name = $wpdb->prefix . $name;
         // Retrieve the character set for the database
         $charset_collate = $wpdb->get_charset_collate();
         $do_create_table = true;
         // Check to see if the table already exists
-        if ($do_create_table && !Database::table_exists( $args["name"] )) {
+        if ($do_create_table && !Database::table_exists( $table_name )) {
             // Write the SQL query to create the data table in MySQL
-            $sql = "CREATE TABLE {$args['name']} (
+            $sql = "CREATE TABLE $table_name (
                 ID BIGINT(20) AUTO_INCREMENT NOT NULL,\n"
-                . self::build_table_schema( $args["schema"] ) .
+                . self::build_table_schema( $schema ) .
                 "created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 modified_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (ID)
@@ -41,8 +51,16 @@ class Table
             require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
             dbDelta($sql);
         }
+        $table_resource = new Table_Resource( $name );
+        // Check to see if the user wants admin pages to be created
+        if ( $create_pages ) {
+            // Create the Admin_Menu resource
+            $admin_menu = new Admin_Menu( $table_resource, $schema );
+            // Create the admin menu
+            add_action( "admin_menu", [ $admin_menu, "create" ] );
+        }
         // return the table resource
-        return new Table_Resource( $args["name"] );
+        return $table_resource;
     }
 
     /**
@@ -127,7 +145,8 @@ class Table
      */
     public static function retrieve(string $name): Table_Resource
     {
-        if (Database::table_exists( $name )) {
+        global $wpdb;
+        if (Database::table_exists( $wpdb->prefix . $name )) {
             return new Table_Resource( $name );
         } else {
             throw new Table_Query_Exception("There are no data tables in the database named $name", 2);

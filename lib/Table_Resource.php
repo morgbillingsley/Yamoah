@@ -2,36 +2,43 @@
 
 namespace Yamoah;
 
-use Data_Resource;
+use \Yamoah\Exception\Data_Query_Exception;
 
 /**
  * Class Table_Resource
  */
 class Table_Resource
 {
-    /** @var string name of the datatable */
+    /** @var string name of the table */
     public $name;
+
+    /** @var string name of the table in the wordpress database */
+    public $table;
 
     /**
      * @param string value to set for the table name
      */
     public function __construct(string $name)
     {
+        // Set the resource name
         $this->name = $name;
+        // Set the table name
+        global $wpdb;
+        $this->table = $wpdb->prefix . $name;
     }
 
     /**
      * @param array arguments to query for a row / rows in this table
      * @return array an array of resource objects that were found from the query
      */
-    public function find(array $args = array()): array
+    public function find(array $args = array(), $limit = 10, $offset = 0): array
     {
         global $wpdb;
-        $sql = "SELECT * FROM {$this->name};";
+        $sql = $wpdb->prepare("SELECT * FROM {$this->table} LIMIT %d OFFSET %d;", [ $limit, $offset ]);
         $rows = $wpdb->get_results( $sql, ARRAY_A );
         $results = array();
         foreach($rows as $row) {
-            $results[] = new Data_Resource($row, $this->name);
+            $results[] = new Data_Resource($row, $this->table);
         }
         return $results;
     }
@@ -44,13 +51,13 @@ class Table_Resource
     {
         global $wpdb;
         // Write the query
-        $sql = $wpdb->prepare("SELECT * FROM {$this->name} WHERE `ID` = %d;", $id);
+        $sql = $wpdb->prepare("SELECT * FROM {$this->table} WHERE `ID` = %d;", $id);
         // Query for the row with the corresponding ID
         $row = $wpdb->get_row($sql, ARRAY_A);
         if (NULL === $row) {
             throw new Data_Query_Exception($wpdb->last_error, 2);
         } else {
-            return new Data_Resource($row, $this->name);
+            return new Data_Resource($row, $this->table);
         }
     }
 
@@ -61,7 +68,7 @@ class Table_Resource
     public function add(array $data): Data_Resource
     {
         global $wpdb;
-        $inserted = $wpdb->insert($this->name, $data);
+        $inserted = $wpdb->insert($this->table, $data);
         if (false === $inserted) {
             throw new Data_Query_Exception($wpdb->last_error, 1);
         }
@@ -77,7 +84,7 @@ class Table_Resource
     public function delete(array $args)
     {
         global $wpdb;
-        $deleted = $wpdb->delete($this->name, $args);
+        $deleted = $wpdb->delete($this->table, $args);
         // If the query was unsuccessful, throw an error
         if (false === $deleted) {
             throw new Data_Query_Exception($wpdb->last_error, 4);
@@ -90,7 +97,7 @@ class Table_Resource
     public function delete_one(int $id)
     {
         global $wpdb;
-        $deleted = $wpdb->delete($this->name, array( "ID" => $id ), "%d");
+        $deleted = $wpdb->delete($this->table, array( "ID" => $id ), "%d");
         // If the query was unsuccessful, throw an error
         if (false === $deleted) {
             throw new Data_Query_Exception($wpdb->last_error, 4);
