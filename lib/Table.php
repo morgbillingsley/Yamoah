@@ -71,24 +71,26 @@ class Table
     {
         $query = "";
         foreach ($schema as $name => $meta) {
-            // Check to see if the user submitted a data type
-            $data_type = isset( $meta["type"] ) ? $meta["type"]
-                : gettype( $meta ) == "string" ? $meta
-                : "string";
-            // Get the SQL data type
-            $sql_type = self::get_sql_data_type( $data_type );
-            // Check if the user submitted a value for whether or not the field can be NULL
-            // Default value is true
-            $allow_null = isset( $meta["null"] ) && gettype( $meta["null"] ) ? $meta["null"] : true;
-            // Check if field should be unique
-            $is_unique = isset( $meta["unique"] ) && gettype( $meta["unique"] ) ? $meta["unique"] : false;
-            // Build SQL statement for field
-            $statement = $name . " " . $sql_type;
-            $statement .= $allow_null ? "" : " NOT NULL";
-            $statement .= $is_unique ? " UNIQUE" : "";
-            $statement .= ",\n";
-            // Add the built SQL statement to the query
-            $query .= $statement;
+            if (gettype( $meta ) == "string") {
+                $query .= $name . " " . self::get_sql_data_type( $meta ) . ",\n";
+            } else if (gettype( $meta ) == "array") {
+                // Check to see if the user submitted a data type
+                $data_type = isset( $meta["type"] ) ? $meta["type"] : "string";
+                // Get the SQL data type
+                $sql_type = self::get_sql_data_type( $data_type );
+                // Check if the user submitted a value for whether or not the field can be NULL
+                // Default value is true
+                $allow_null = isset( $meta["null"] ) && gettype( $meta["null"] ) ? $meta["null"] : true;
+                // Check if field should be unique
+                $is_unique = isset( $meta["unique"] ) && gettype( $meta["unique"] ) ? $meta["unique"] : false;
+                // Build SQL statement for field
+                $statement = $name . " " . $sql_type;
+                $statement .= $allow_null ? "" : " NOT NULL";
+                $statement .= $is_unique ? " UNIQUE" : "";
+                $statement .= ",\n";
+                // Add the built SQL statement to the query
+                $query .= $statement;
+            }
         }
         return $query;
     }

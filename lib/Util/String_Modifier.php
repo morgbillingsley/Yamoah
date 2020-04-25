@@ -144,4 +144,48 @@ class String_Modifier
         // return the cleaned url
         return $url;
     }
+
+    /**
+     * @param string url to add query parameter to
+     * @param string parameter key
+     * @param mixed parameter value
+     * @return string url with added query parameter
+     */
+    public static function add_param_to_url(string $url, string $key, string $value): string
+    {
+        // get the parts of the url
+        $parts = parse_url( $url );
+        // split up the query string into an array
+        parse_str( $parts["query"], $query );
+        // set the provided key to the provided value in the query array
+        $query[ $key ] = $value;
+        // glue the query array back into a string
+        $parts["query"] = http_build_query( $query );
+        // Build the url
+        return self::build_url( $parts );
+    }
+
+    /**
+     * @param array array of url parts similar to that of the return value of the parse_url function
+     * @return string built url
+     */
+    public static function build_url(array $parts)
+    {
+        // Add the scheme
+        $url = $parts["scheme"] . "://";
+        // Check if the url has username and password
+        $url .= isset( $parts["user"] ) && !empty( $parts["user"] ) && isset( $parts["pass"] ) && !empty( $parts["pass"] ) ? $parts["user"] . ":" . $parts["pass"] . "@" : "";
+        // Add the host name
+        $url .= $parts["host"];
+        // Add the port
+        $url .= isset( $parts["port"] ) && !empty( $parts["port"] ) ? ":" . $parts["port"] : "";
+        // Add the path
+        $url .= $parts["path"];
+        // Add the query
+        $url .= isset( $parts["query"] ) && !empty( $parts["query"] ) ? "?" . $parts["query"] : "";
+        // Add the anchor
+        $url .= isset( $parts["anchor"] ) && !empty( $parts["anchor"] ) ? "#" . $parts["anchor"] : "";
+        // Return the built url
+        return $url;
+    }
 }
