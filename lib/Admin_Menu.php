@@ -99,7 +99,7 @@ class Admin_Menu
             $this->slug,
             array( $this->main_page, "build" ),
             $this->icon,
-            $this->position,
+            $this->position
         );
         // Create the Admin_Create_Page object
         $this->create_page = new Admin_Create_Page($this);
