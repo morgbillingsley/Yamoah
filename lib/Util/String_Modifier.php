@@ -155,8 +155,12 @@ class String_Modifier
     {
         // get the parts of the url
         $parts = parse_url( $url );
-        // split up the query string into an array
-        parse_str( $parts["query"], $query );
+        if ( isset( $parts["query"] ) ) {
+            // split up the query string into an array
+            parse_str( $parts["query"], $query );
+        } else {
+            $query = array();
+        }
         // set the provided key to the provided value in the query array
         $query[ $key ] = $value;
         // glue the query array back into a string
