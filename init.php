@@ -11,6 +11,7 @@ require __DIR__ . "/lib/Exception/Data_Request_Exception.php";
 require __DIR__ . "/lib/Util/Database.php";
 require __DIR__ . "/lib/Util/Data_Types.php";
 require __DIR__ . "/lib/Util/String_Modifier.php";
+require __DIR__ . "/lib/Util/Asset.php";
 require __DIR__ . "/lib/Util/Admin_Page.php";
 require __DIR__ . "/lib/Util/Admin_Page_Interface.php";
 require __DIR__ . "/lib/Util/Admin_Data_Table.php";

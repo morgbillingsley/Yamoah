@@ -71,11 +71,14 @@ class Table
     {
         $query = "";
         foreach ($schema as $name => $meta) {
+            // Set relation to false
+            $is_relation = false;
             if (gettype( $meta ) == "string") {
                 $query .= $name . " " . self::get_sql_data_type( $meta ) . ",\n";
-            } else if (gettype( $meta ) == "array") {
+            } else if (gettype( $meta ) == "array" && isset( $meta["type"] )) {
                 // Check to see if the user submitted a data type
-                $data_type = isset( $meta["type"] ) ? $meta["type"] : "string";
+                $data_type = gettype( $meta["type"] ) == "string" ? $meta["type"] : "string";
+                $is_relation = $data_type === "relation";
                 // Get the SQL data type
                 $sql_type = self::get_sql_data_type( $data_type );
                 // Check if the user submitted a value for whether or not the field can be NULL
@@ -91,6 +94,17 @@ class Table
                 // Add the built SQL statement to the query
                 $query .= $statement;
             }
+            // If relation, create foreign key
+            if ($is_relation) {
+                global $wpdb;
+                $parent = $wpdb->prefix . $meta["table"];
+                // Set the foreign key
+                $statement = "FOREIGN KEY ($name) REFERENCES $parent(ID)";
+                // Set the cascade
+                $cascade = isset( $meta["cascade"] ) && gettype( $meta["cascade"] ) == "boolean" ? $meta["cascade"] : false;
+                $statement .= $cascade ? " ON DELETE CASCADE" : "";
+                $query .= $statement . ",\n";
+            }
         }
         return $query;
     }
@@ -99,7 +113,7 @@ class Table
      * @param string the type of data submitted by the user
      * @return string the equivalent data type that MySQL can understand
      */
-    private static function get_sql_data_type(string $type): string
+    private static function get_sql_data_type(string $type, array $args = NULL): string
     {
         switch ($type) {
             case "string":
@@ -134,6 +148,9 @@ class Table
                 break;
             case "media":
                 return "LONGTEXT";
+                break;
+            case "relation":
+                return "BIGINT(20)";
                 break;
             default:
                 return "VARCHAR(255)";

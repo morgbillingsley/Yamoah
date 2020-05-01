@@ -3,6 +3,7 @@
 namespace Yamoah;
 
 use \Yamoah\Util\String_Modifier;
+use \Yamoah\Util\Asset;
 use \Yamoah\Util\Admin_Page;
 use \Yamoah\Util\Admin_Page_Interface;
 use \Yamoah\Exception\Data_Query_Exception;
@@ -32,12 +33,8 @@ class Admin_Create_Page extends Admin_Page implements Admin_Page_Interface
     {
         // Bring in the wordpress media scripts
         wp_enqueue_media();
-        // Create dummy script tags
-        wp_register_script( "yamoah-media-uploader", "" );
-        wp_enqueue_script( "yamoah-media-uploader" );
-        // Add script
-        $script = file_get_contents( __DIR__ . "/assets/wp_media.js" );
-        wp_add_inline_script( "yamoah-media-uploader", $script );
+        // Add the wordpress media javascript file to the page
+        Asset::include( __DIR__ . "/assets/wp_media.js" );
         // Page wrapper
         echo '<div class="wrap">';
         // Page heading
