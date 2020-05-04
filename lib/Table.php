@@ -30,6 +30,12 @@ class Table
             $schema = $args["schema"];
             // If set, store the create_pages option in memory, otherwise, set to true
             $create_pages = isset( $args["create_pages"] ) && gettype( $args["create_pages"] ) == "boolean" ? $args["create_pages"] : true;
+            // If set, store the capability option in memory, otherwise, set to NULL
+            $capability = isset( $args["capability"] ) && gettype( $args["capability"] ) == "string" ? $args["capability"] : NULL;
+            // If set, store the position option in memory, otherwise, set to NULL
+            $position = isset( $args["position"] ) && gettype( $args["position"] ) == "integer" ? $args["position"] : NULL;
+            // If set, store the icon option in memory, otherwise, set to NULL
+            $dashicon = isset( $args["icon"] ) && gettype( $args["icon"] ) == "string" ? $args["icon"] : NULL;
         }
         // Bring in the WordPress database object
         global $wpdb;
@@ -55,7 +61,7 @@ class Table
         // Check to see if the user wants admin pages to be created
         if ( $create_pages ) {
             // Create the Admin_Menu resource
-            $admin_menu = new Admin_Menu( $table_resource, $schema );
+            $admin_menu = new Admin_Menu( $table_resource, $schema, $capability, $position, $icon );
             // Create the admin menu
             add_action( "admin_menu", [ $admin_menu, "create" ] );
         }
